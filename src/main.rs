@@ -99,7 +99,7 @@ async fn server_instance_page(
         return StatusCode::NOT_FOUND.into_response();
     }
 
-    Html(include_str!("../html/index.html")).into_response()
+    Html(include_str!("../html/chat.html")).into_response()
 }
 
 async fn register_page() -> Html<&'static str> {
