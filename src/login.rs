@@ -43,6 +43,14 @@ pub(crate) async fn login_handler(
         .is_ok();
 
     if is_valid {
+        sqlx::query(
+            "INSERT INTO logged_in_users (name) VALUES (?) ON CONFLICT(name) DO NOTHING"
+        )
+        .bind(&payload.username)
+        .execute(&app_state.db)
+        .await
+        .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
+
         let session_id = Uuid::new_v4();
         app_state
             .sessions
