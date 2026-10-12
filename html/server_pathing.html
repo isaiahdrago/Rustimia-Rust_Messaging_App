@@ -5,12 +5,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Server Pathing</title>
     <style>
-        body { font-family: sans-serif; max-width: 400px; margin: 80px auto; padding: 0 20px; background: #0989c9; 
+        body { font-family: sans-serif; max-height: 300px; max-width: 900px; margin: 80px auto; padding: 0 20px; background: #0989c9;
             background-image: url("/images/stars.gif"); background-size: 100% 100%; background-repeat: no-repeat; background-position: center; background-attachment: fixed;}
         form { display: grid; gap: 12px; padding: 24px; background: white; border-radius: 8px;}
         input, button { box-sizing: border-box; padding: 10px; font-size: 1rem; }
-        #container {display: flex; gap: 30px; align-items: flex-start;}
-        #server-form, #server-public-form {flex: 2;}
+        #container {display: flex; flex-direction: column; gap: 20px; font-size: 1.2rem;}
+        #container input, #container button { font-size: 1.2rem; padding: 12px; }
+        #server-form, #public-server-form { width: 100%; box-sizing: border-box;}
+        #pub-servers { height: 300px; border: 1px solid #0989c9; background-color: white; 
+            overflow-y: auto; padding: 10px; margin-bottom: 10px;
+            display: flex; flex-direction: column; }
         button { cursor: pointer; }
         #error { min-height: 1.2em; color: #b00020; }
     </style>
@@ -20,13 +24,17 @@
     <form id="server-form">
         <div id="element-1">
             <h2>Servers</h2>
-            <input name="name" placeholder="Server Name" required>
-            <input type="checkbox" id="public" name="public">
-            <label for="public">Make the Server Public?</label>
-            <button type="submit">Create Server</button>
-            <button type="button" id="enter">Enter Server</button>
-            <button type="button" onclick="window.location.href = '/delete_server'">Delete Server</button>
-            <button type="button" onclick="window.location.href = '/'">Logout</button>
+            <div style="margin-bottom: 5px;">
+                <input name="name" placeholder="Server Name" required>
+                <input type="checkbox" id="public" name="public">
+                <label for="public">Make the Server Public?</label>
+            </div>
+            <div>
+                <button type="submit">Create Server</button>
+                <button type="button" id="enter">Enter Server</button>
+                <button type="button" onclick="window.location.href = '/delete_server'">Delete Server</button>
+                <button type="button" onclick="window.location.href = '/'">Logout</button>
+            </div>
             <div id="error" role="alert"></div>
         </div>
     </form>
@@ -95,6 +103,19 @@
             }
         };
 
+        function timeAgo(createdAt) {
+            const created = new Date(`${createdAt.replace(" ", "T")}Z`);
+            const seconds = Math.floor((Date.now() - created.getTime()) / 1000);
+
+            if (seconds < 60) return "just now";
+            if (seconds < 3600) return `created ${Math.floor(seconds / 60)} minutes ago`;
+            if (seconds < 86400) return `created ${Math.floor(seconds / 3600)} hours ago`;
+            const days = Math.floor(seconds / 86400)
+            if (days < 7) return `created ${days} days ago`;
+            if (days < 365) return `created ${Math.floor(days / 7)} weeks ago`;
+            return `created ${Math.floor(days / 365)} years ago`;
+        }
+
         async function public_server() {
             const response = await fetch("/public_servers");
             if (!response.ok) {
@@ -109,9 +130,10 @@
             servers.forEach(server => {
                 const button = document.createElement("button");
                 button.type = "button";
-                button.textContent = server;
+                button.style.margin = "5px";
+                button.textContent = `${server.name} - ${timeAgo(server.created_at)}`;
                 button.addEventListener("click", () => {
-                    window.location.href = `/servers/${encodeURIComponent(server)}`;
+                    window.location.href = `/servers/${encodeURIComponent(server.name)}`;
                 });
                 pubButtonContainer.appendChild(button);
             });

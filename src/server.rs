@@ -5,6 +5,7 @@ use axum::{
 };
 use serde::{Deserialize, Serialize};
 use std::sync::{Arc, RwLock};
+use sqlx::Row;
 
 use crate::{AppState};
 
@@ -17,6 +18,12 @@ pub(crate) struct CreateServerRequest {
 #[derive(Serialize)]
 pub(crate) struct CreateServerResponse {
     pub(crate) name: String,
+}
+
+#[derive(Serialize)]
+pub(crate) struct PublicServer {
+    pub(crate) name: String,
+    pub(crate) created_at: String,
 }
 
 #[derive(Deserialize)]
@@ -95,13 +102,26 @@ pub(crate) async fn enter_server_handler(
 
 pub(crate) async fn public_server_hander(
     State(app_state): State<Arc<AppState>>,
-) -> Result<Json<Vec<String>>, StatusCode> {
-    let servers = sqlx::query_scalar::<_, String>(
-        "SELECT name FROM servers WHERE public = 1 ORDER BY name"
+) -> Result<Json<Vec<PublicServer>>, StatusCode> {
+
+    let rows = sqlx::query(
+        "SELECT name, created_at FROM servers WHERE public = 1 ORDER BY name"
     )
     .fetch_all(&app_state.db)
     .await
     .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
+
+    let servers = rows.into_iter().map(|row| {
+        Ok(PublicServer {
+            name: row
+            .try_get("name")
+            .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?,
+            created_at: row
+            .try_get("created_at")
+            .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?,
+        })
+    })
+    .collect::<Result<Vec<_>, StatusCode>>()?;
 
     Ok(Json(servers))
 }
