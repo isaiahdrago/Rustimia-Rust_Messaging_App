@@ -2,7 +2,7 @@
 
 ## Highlights
 * **Real-Time:** This app offers real-time communication, with server integration.
-* **Account Management:** Accounts are managed using a username and a hashed password, and if you delete your account your servers go to.
+* **Account Management:** Accounts are managed using a username, and a hashed password. If you delete the server created by that account are deleted to.
 * **Session-Tracking:** During conversations your name will be displayed alongside your message.
 * **Public Servers:** If you want everyone to see your server, you can make it public so it shows up on the server page.
 
